@@ -1,0 +1,22 @@
+﻿# Node
+node_modules/
+studio/node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Build
+.next/
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+studio/package-lock.json

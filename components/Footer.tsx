@@ -19,8 +19,12 @@ export function Footer({ locale }: { locale: Locale }) {
   return (
     <footer className="mt-16 border-t border-stroke bg-white dark:border-night-stroke dark:bg-night-bg">
       <Container className="grid gap-10 py-10 md:grid-cols-3">
+        
+        {/* العمود الأول */}
         <div className="space-y-3">
-          <div className="text-lg font-semibold text-ink dark:text-night-text">{tr.brand}</div>
+          <div className="text-lg font-semibold text-ink dark:text-night-text">
+            {tr.brand}
+          </div>
           <p className="text-sm leading-7 text-muted dark:text-night-muted">
             {locale === "ar"
               ? "منصة كورسات عربية/إنكليزية بتجربة هادئة ومحتوى عملي مُنظم."
@@ -28,8 +32,11 @@ export function Footer({ locale }: { locale: Locale }) {
           </p>
         </div>
 
+        {/* العمود الثاني - روابط داخلية */}
         <div className="space-y-3">
-          <div className="text-sm font-semibold text-ink dark:text-night-text">{tr.footer.links}</div>
+          <div className="text-sm font-semibold text-ink dark:text-night-text">
+            {tr.footer.links}
+          </div>
           <div className="flex flex-col gap-2">
             {links.map((l) => (
               <Link
@@ -43,8 +50,11 @@ export function Footer({ locale }: { locale: Locale }) {
           </div>
         </div>
 
+        {/* العمود الثالث - روابط خارجية */}
         <div className="space-y-3">
-          <div className="text-sm font-semibold text-ink dark:text-night-text">{tr.footer.follow}</div>
+          <div className="text-sm font-semibold text-ink dark:text-night-text">
+            {tr.footer.follow}
+          </div>
           <div className="flex flex-col gap-2 text-sm text-muted dark:text-night-muted">
             <a href={social.instagram} target="_blank" rel="noreferrer" className="hover:underline">
               Instagram
