@@ -9,26 +9,29 @@ export function Navbar({ locale }: { locale: Locale }) {
   const tr = t(locale);
   const nav = tr.nav;
 
+  // ✅ routes ثابتة (حل typedRoutes)
   const links = [
-    { href: `/${locale}`, label: nav.home },
-    { href: `/${locale}/courses`, label: nav.courses },
-    { href: `/${locale}/pricing`, label: nav.pricing },
-    { href: `/${locale}/about`, label: nav.about },
-    { href: `/${locale}/contact`, label: nav.contact },
-    { href: `/${locale}/activate`, label: nav.activate },
-  ];
+    { href: `/${locale}` as const, label: nav.home },
+    { href: `/${locale}/courses` as const, label: nav.courses },
+    { href: `/${locale}/pricing` as const, label: nav.pricing },
+    { href: `/${locale}/about` as const, label: nav.about },
+    { href: `/${locale}/contact` as const, label: nav.contact },
+    { href: `/${locale}/activate` as const, label: nav.activate },
+  ] as const;
 
   return (
     <header className="sticky top-0 z-40 border-b border-stroke bg-bg/80 backdrop-blur dark:border-night-stroke dark:bg-night-bg/75">
       <Container className="flex items-center justify-between py-3">
         <div className="flex items-center gap-3">
-          <Link href={`/${locale}`} className="flex items-center gap-3">
+          <Link href={`/${locale}` as const} className="flex items-center gap-3">
             <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-white shadow-soft dark:bg-night-surface">
               <Image src="/logo.png" alt="Esraa Al-Noor logo" fill className="object-contain p-1" />
             </div>
             <div className="hidden sm:block">
               <div className="text-sm font-semibold text-ink dark:text-night-text">{tr.brand}</div>
-              <div className="text-xs text-muted dark:text-night-muted">{locale === "ar" ? "أكاديمية كورسات" : "Course Academy"}</div>
+              <div className="text-xs text-muted dark:text-night-muted">
+                {locale === "ar" ? "أكاديمية كورسات" : "Course Academy"}
+              </div>
             </div>
           </Link>
 
