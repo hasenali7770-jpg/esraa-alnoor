@@ -16,7 +16,7 @@ export function LocaleSwitch({ current, label }: { current: Locale; label: strin
     <div className="flex items-center gap-2">
       <span className="text-xs text-walnut-700 dark:text-sand-200">{label}</span>
       {locales.map((l) => (
-        <Link key={l} href={getSwitchedPath(pathname || `/${current}`, l)}
+<Link key={l} href={getSwitchedPath(pathname || `/${current}`, l) as any}
           className={`rounded-full px-3 py-1 text-xs transition ${l===current
             ? "bg-walnut-800 text-sand-50 dark:bg-sand-200 dark:text-walnut-900"
             : "bg-sand-100 text-walnut-800 hover:bg-sand-200 dark:bg-walnut-800 dark:text-sand-100 dark:hover:bg-walnut-700"}`}>
