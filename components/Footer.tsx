@@ -7,7 +7,6 @@ export function Footer({ locale }: { locale: Locale }) {
   const tr = t(locale);
   const nav = tr.nav;
 
-  // ✅ Routes ثابتة حتى typedRoutes ما يرفضها
   const links = [
     { href: `/${locale}/courses` as const, label: nav.courses },
     { href: `/${locale}/pricing` as const, label: nav.pricing },
@@ -15,7 +14,7 @@ export function Footer({ locale }: { locale: Locale }) {
     { href: `/${locale}/contact` as const, label: nav.contact },
     { href: `/${locale}/terms` as const, label: nav.terms },
     { href: `/${locale}/privacy` as const, label: nav.privacy },
-  ];
+  ] as const;
 
   return (
     <footer className="mt-16 border-t border-stroke bg-white dark:border-night-stroke dark:bg-night-bg">
@@ -47,9 +46,15 @@ export function Footer({ locale }: { locale: Locale }) {
         <div className="space-y-3">
           <div className="text-sm font-semibold text-ink dark:text-night-text">{tr.footer.follow}</div>
           <div className="flex flex-col gap-2 text-sm text-muted dark:text-night-muted">
-            <a href={social.instagram} target="_blank" rel="noreferrer" className="hover:underline">Instagram</a>
-            <a href={social.facebook} target="_blank" rel="noreferrer" className="hover:underline">Facebook</a>
-            <a href={`mailto:${social.email}`} className="hover:underline">{social.email}</a>
+            <a href={social.instagram} target="_blank" rel="noreferrer" className="hover:underline">
+              Instagram
+            </a>
+            <a href={social.facebook} target="_blank" rel="noreferrer" className="hover:underline">
+              Facebook
+            </a>
+            <a href={`mailto:${social.email}`} className="hover:underline">
+              {social.email}
+            </a>
             <a href={social.whatsappWaMe} target="_blank" rel="noreferrer" className="hover:underline">
               {social.whatsappNumberLocal}
             </a>
