@@ -7,13 +7,14 @@ export function Footer({ locale }: { locale: Locale }) {
   const tr = t(locale);
   const nav = tr.nav;
 
+  // ✅ Routes ثابتة حتى typedRoutes ما يرفضها
   const links = [
-    { href: `/${locale}/courses`, label: nav.courses },
-    { href: `/${locale}/pricing`, label: nav.pricing },
-    { href: `/${locale}/about`, label: nav.about },
-    { href: `/${locale}/contact`, label: nav.contact },
-    { href: `/${locale}/terms`, label: nav.terms },
-    { href: `/${locale}/privacy`, label: nav.privacy },
+    { href: `/${locale}/courses` as const, label: nav.courses },
+    { href: `/${locale}/pricing` as const, label: nav.pricing },
+    { href: `/${locale}/about` as const, label: nav.about },
+    { href: `/${locale}/contact` as const, label: nav.contact },
+    { href: `/${locale}/terms` as const, label: nav.terms },
+    { href: `/${locale}/privacy` as const, label: nav.privacy },
   ];
 
   return (
@@ -32,7 +33,11 @@ export function Footer({ locale }: { locale: Locale }) {
           <div className="text-sm font-semibold text-ink dark:text-night-text">{tr.footer.links}</div>
           <div className="flex flex-col gap-2">
             {links.map((l) => (
-              <Link key={l.href} href={l.href} className="text-sm text-muted hover:underline dark:text-night-muted">
+              <Link
+                key={l.href}
+                href={l.href}
+                className="text-sm text-muted hover:underline dark:text-night-muted"
+              >
                 {l.label}
               </Link>
             ))}
@@ -42,10 +47,12 @@ export function Footer({ locale }: { locale: Locale }) {
         <div className="space-y-3">
           <div className="text-sm font-semibold text-ink dark:text-night-text">{tr.footer.follow}</div>
           <div className="flex flex-col gap-2 text-sm text-muted dark:text-night-muted">
-            <Link href={social.instagram} target="_blank" className="hover:underline">Instagram</Link>
-            <Link href={social.facebook} target="_blank" className="hover:underline">Facebook</Link>
-            <Link href={`mailto:${social.email}`} className="hover:underline">{social.email}</Link>
-            <Link href={social.whatsappWaMe} target="_blank" className="hover:underline">{social.whatsappNumberLocal}</Link>
+            <a href={social.instagram} target="_blank" rel="noreferrer" className="hover:underline">Instagram</a>
+            <a href={social.facebook} target="_blank" rel="noreferrer" className="hover:underline">Facebook</a>
+            <a href={`mailto:${social.email}`} className="hover:underline">{social.email}</a>
+            <a href={social.whatsappWaMe} target="_blank" rel="noreferrer" className="hover:underline">
+              {social.whatsappNumberLocal}
+            </a>
           </div>
         </div>
       </Container>
