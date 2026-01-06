@@ -5,42 +5,48 @@ import { Container } from "@/components/Container";
 import { Locale, isLocale, t } from "@/lib/i18n";
 import { CourseCard } from "@/components/CourseCard";
 
-type Course = {
+type CmsCourse = {
   _id: string;
   slug: string;
+  title: { ar: string; en: string };
+  short: { ar: string; en: string };
   priceIQD: number;
-  title: Record<string, string>;
-  short: Record<string, string>;
-  tags: Record<string, string[]>;
+  tags: { ar: string[]; en: string[] };
   coverImageUrl?: string | null;
+  order?: number | null;
 };
 
 export default function CoursesPage({ params }: { params: { locale: string } }) {
   const locale = (isLocale(params.locale) ? params.locale : "ar") as Locale;
   const tr = t(locale);
 
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<CmsCourse[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
     (async () => {
       try {
+        setLoading(true);
         const res = await fetch(`/${locale}/api/courses`, { cache: "no-store" });
-        const data = await res.json();
-        setCourses(Array.isArray(data?.courses) ? data.courses : []);
-      } catch (e) {
-        setCourses([]);
+        const data = (await res.json()) as { ok: boolean; courses: CmsCourse[] };
+        if (mounted) setCourses(Array.isArray(data.courses) ? data.courses : []);
+      } catch {
+        if (mounted) setCourses([]);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     })();
+    return () => {
+      mounted = false;
+    };
   }, [locale]);
 
   const allTags = useMemo(() => {
     const set = new Set<string>();
     courses.forEach((c) => (c.tags?.[locale] || []).forEach((tag) => set.add(tag)));
     return Array.from(set);
-  }, [courses, locale]);
+  }, [locale, courses]);
 
   const [q, setQ] = useState("");
   const [tag, setTag] = useState<string | null>(null);
@@ -48,6 +54,7 @@ export default function CoursesPage({ params }: { params: { locale: string } }) 
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
+
     return courses
       .filter((c) => {
         const title = (c.title?.[locale] || "").toLowerCase();
@@ -57,8 +64,10 @@ export default function CoursesPage({ params }: { params: { locale: string } }) 
         return matchQ && matchTag;
       })
       .slice()
-      .sort((a, b) => (sort === "asc" ? (a.priceIQD || 0) - (b.priceIQD || 0) : (b.priceIQD || 0) - (a.priceIQD || 0)));
-  }, [courses, q, tag, sort, locale]);
+      .sort((a, b) =>
+        sort === "asc" ? (a.priceIQD || 0) - (b.priceIQD || 0) : (b.priceIQD || 0) - (a.priceIQD || 0)
+      );
+  }, [q, tag, sort, locale, courses]);
 
   return (
     <Container className="py-10">
@@ -85,6 +94,7 @@ export default function CoursesPage({ params }: { params: { locale: string } }) 
             <option value="asc">{tr.coursesPage.sortPriceAsc}</option>
             <option value="desc">{tr.coursesPage.sortPriceDesc}</option>
           </select>
+
           <button
             onClick={() => {
               setQ("");
@@ -109,6 +119,7 @@ export default function CoursesPage({ params }: { params: { locale: string } }) 
           >
             {locale === "ar" ? "الكل" : "All"}
           </button>
+
           {allTags.map((tTag) => (
             <button
               key={tTag}
@@ -125,7 +136,7 @@ export default function CoursesPage({ params }: { params: { locale: string } }) 
 
       {loading ? (
         <div className="rounded-3xl border border-stroke bg-white p-6 text-sm text-muted shadow-soft dark:border-night-stroke dark:bg-night-surface dark:text-night-muted">
-          Loading...
+          {locale === "ar" ? "جاري تحميل الكورسات..." : "Loading courses..."}
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-3xl border border-stroke bg-white p-6 text-sm text-muted shadow-soft dark:border-night-stroke dark:bg-night-surface dark:text-night-muted">
@@ -134,7 +145,19 @@ export default function CoursesPage({ params }: { params: { locale: string } }) 
       ) : (
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map((c) => (
-            <CourseCard key={c._id} course={c as any} locale={locale} />
+            <CourseCard
+              key={c._id}
+              locale={locale}
+              course={{
+                slug: c.slug,
+                priceIQD: c.priceIQD,
+                hoursMin: 0,
+                title: c.title,
+                short: c.short,
+                tags: c.tags,
+                coverImageUrl: c.coverImageUrl || "",
+              } as any}
+            />
           ))}
         </div>
       )}
