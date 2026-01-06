@@ -1,54 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Container } from "@/components/Container";
-import { Locale, isLocale, t } from "@/lib/i18n";
+import { useMemo, useState } from "react";
 import { CourseCard } from "@/components/CourseCard";
+import { Container } from "@/components/Container";
+import { Locale, t } from "@/lib/i18n";
 
-type CmsCourse = {
+type Course = {
   _id: string;
   slug: string;
-  title?: { ar?: string; en?: string } | null;
-  short?: { ar?: string; en?: string } | null;
-  priceIQD?: number | null;
-  tags?: { ar?: string[]; en?: string[] } | null;
-  coverImageUrl?: string | null;
-  order?: number | null;
+  title: { ar: string; en: string };
+  short: { ar: string; en: string };
+  priceIQD: number;
+  tags: { ar: string[]; en: string[] };
 };
 
-export default function CoursesPage({ params }: { params: { locale: string } }) {
-  const locale = (isLocale(params.locale) ? params.locale : "ar") as Locale;
+export function CoursesClient({ locale, data }: { locale: Locale; data: Course[] }) {
   const tr = t(locale);
-
-  const [courses, setCourses] = useState<CmsCourse[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-
-    (async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`/${locale}/api/courses`, { cache: "no-store" });
-        const data = (await res.json()) as { ok?: boolean; courses?: CmsCourse[] };
-        if (mounted) setCourses(Array.isArray(data.courses) ? data.courses : []);
-      } catch {
-        if (mounted) setCourses([]);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
-  }, [locale]);
 
   const allTags = useMemo(() => {
     const set = new Set<string>();
-    courses.forEach((c) => (c.tags?.[locale] || []).forEach((tag) => set.add(tag)));
+    data.forEach((c) => c.tags[locale].forEach((tag) => set.add(tag)));
     return Array.from(set);
-  }, [locale, courses]);
+  }, [data, locale]);
 
   const [q, setQ] = useState("");
   const [tag, setTag] = useState<string | null>(null);
@@ -56,22 +29,19 @@ export default function CoursesPage({ params }: { params: { locale: string } }) 
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
-
-    return courses
+    const list = data
       .filter((c) => {
-        const title = (c.title?.[locale] || "").toLowerCase();
-        const short = (c.short?.[locale] || "").toLowerCase();
+        const title = c.title[locale].toLowerCase();
+        const short = c.short[locale].toLowerCase();
         const matchQ = !query || title.includes(query) || short.includes(query);
-        const matchTag = !tag || (c.tags?.[locale] || []).includes(tag);
+        const matchTag = !tag || c.tags[locale].includes(tag);
         return matchQ && matchTag;
       })
       .slice()
-      .sort((a, b) => {
-        const ap = typeof a.priceIQD === "number" ? a.priceIQD : 0;
-        const bp = typeof b.priceIQD === "number" ? b.priceIQD : 0;
-        return sort === "asc" ? ap - bp : bp - ap;
-      });
-  }, [q, tag, sort, locale, courses]);
+      .sort((a, b) => (sort === "asc" ? a.priceIQD - b.priceIQD : b.priceIQD - a.priceIQD));
+
+    return list;
+  }, [q, tag, sort, locale, data]);
 
   return (
     <Container className="py-10">
@@ -138,18 +108,14 @@ export default function CoursesPage({ params }: { params: { locale: string } }) 
         </div>
       </div>
 
-      {loading ? (
-        <div className="rounded-3xl border border-stroke bg-white p-6 text-sm text-muted shadow-soft dark:border-night-stroke dark:bg-night-surface dark:text-night-muted">
-          {locale === "ar" ? "جاري تحميل الكورسات..." : "Loading courses..."}
-        </div>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="rounded-3xl border border-stroke bg-white p-6 text-sm text-muted shadow-soft dark:border-night-stroke dark:bg-night-surface dark:text-night-muted">
           {tr.coursesPage.empty}
         </div>
       ) : (
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map((c) => (
-            <CourseCard key={c._id} course={c as any} locale={locale} />
+            <CourseCard key={c.slug} course={c as any} locale={locale} />
           ))}
         </div>
       )}
