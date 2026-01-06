@@ -1,53 +1,36 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@sanity/client";
 
-const projectId = process.env.SANITY_PROJECT_ID || process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
-const dataset = process.env.SANITY_DATASET || process.env.NEXT_PUBLIC_SANITY_DATASET;
-const apiVersion = process.env.SANITY_API_VERSION || process.env.NEXT_PUBLIC_SANITY_API_VERSION || "2026-01-06";
-const token = process.env.SANITY_API_TOKEN; // مهم: هذا لازم يكون موجود حتى نقدر نسوي patch
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET;
+const apiVersion = process.env.NEXT_PUBLIC_SANITY_API_VERSION || "2026-01-06";
 
 if (!projectId || !dataset) {
-  throw new Error("Missing SANITY_PROJECT_ID / SANITY_DATASET");
+  throw new Error("Missing NEXT_PUBLIC_SANITY_PROJECT_ID / NEXT_PUBLIC_SANITY_DATASET");
 }
 
 const client = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: false,
-  ...(token ? { token } : {}),
+  useCdn: true,
 });
 
-export async function POST(req: Request) {
-  if (!token) {
-    return NextResponse.json(
-      { ok: false, message: "Missing SANITY_API_TOKEN (server secret)." },
-      { status: 500 }
-    );
-  }
+export async function GET(req: Request, { params }: { params: { locale: string } }) {
+  const locale = (params?.locale === "en" ? "en" : "ar") as "ar" | "en";
 
-  const { code } = await req.json();
-  const clean = String(code || "").trim();
-  if (!clean) return NextResponse.json({ ok: false, message: "Missing code." }, { status: 400 });
+  const query = `*[_type=="course"] | order(order asc) {
+    _id,
+    "slug": slug.current,
+    "title": select($locale == "en" => coalesce(titleEn, titleAr), titleAr),
+    "short": select($locale == "en" => coalesce(shortEn, shortAr), shortAr),
+    "tags": select($locale == "en" => coalesce(tagsEn, []), coalesce(tagsAr, [])),
+    priceIQD,
+    order,
+    "coverImageUrl": coverImage.asset->url
+  }`;
 
-  const doc = await client.fetch(
-    `*[_type=="activationCode" && active==true && code==$code][0]{
-      _id, code, maxUses, uses, expiresAt,
-      "courseSlug": course->slug.current
-    }`,
-    { code: clean }
-  );
+  const courses = await client.fetch(query, { locale });
 
-  if (!doc) return NextResponse.json({ ok: false, message: "Invalid code." }, { status: 404 });
-  if (doc.expiresAt && new Date(doc.expiresAt).getTime() <= Date.now())
-    return NextResponse.json({ ok: false, message: "Code expired." }, { status: 410 });
-  if (typeof doc.maxUses === "number" && typeof doc.uses === "number" && doc.uses >= doc.maxUses)
-    return NextResponse.json({ ok: false, message: "Code already used." }, { status: 409 });
-
-  await client
-    .patch(doc._id)
-    .set({ uses: (doc.uses || 0) + 1 })
-    .commit({ autoGenerateArrayKeys: true });
-
-  return NextResponse.json({ ok: true, courseSlug: doc.courseSlug, expiresAt: doc.expiresAt || null });
+  return NextResponse.json({ ok: true, courses });
 }
