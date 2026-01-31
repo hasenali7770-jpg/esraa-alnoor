@@ -1,4 +1,5 @@
 import course from "./course";
 import lesson from "./lesson";
+import siteSettings from "./siteSettings";
 
-export const schemaTypes = [course, lesson];
+export const schemaTypes = [siteSettings, course, lesson];
